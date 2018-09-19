@@ -9,50 +9,29 @@ import "./SafeERC20.sol";
  * beneficiary to extract the tokens after a given release time
  */
 contract TokenTimelock {
-  using SafeERC20 for ERC20;
+  using SafeERC20 for ERC20Basic;
 
   // ERC20 basic token contract being held
-  ERC20 private _token;
+  ERC20Basic public token;
 
   // beneficiary of tokens after they are released
-  address private _beneficiary;
+  address public beneficiary;
 
   // timestamp when token release is enabled
-  uint256 private _releaseTime;
+  uint256 public releaseTime;
 
   constructor(
-    ERC20 token,
-    address beneficiary,
-    uint256 releaseTime
+    ERC20Basic _token,
+    address _beneficiary,
+    uint256 _releaseTime
   )
     public
   {
     // solium-disable-next-line security/no-block-members
-    require(releaseTime > block.timestamp);
-    _token = token;
-    _beneficiary = beneficiary;
-    _releaseTime = releaseTime;
-  }
-
-  /**
-   * @return the token being held.
-   */
-  function token() public view returns(ERC20) {
-    return _token;
-  }
-
-  /**
-   * @return the beneficiary of the tokens.
-   */
-  function beneficiary() public view returns(address) {
-    return _beneficiary;
-  }
-
-  /**
-   * @return the time when the tokens are released.
-   */
-  function releaseTime() public view returns(uint256) {
-    return _releaseTime;
+    require(_releaseTime > block.timestamp);
+    token = _token;
+    beneficiary = _beneficiary;
+    releaseTime = _releaseTime;
   }
 
   /**
@@ -60,11 +39,11 @@ contract TokenTimelock {
    */
   function release() public {
     // solium-disable-next-line security/no-block-members
-    require(block.timestamp >= _releaseTime);
+    require(block.timestamp >= releaseTime);
 
-    uint256 amount = _token.balanceOf(address(this));
+    uint256 amount = token.balanceOf(address(this));
     require(amount > 0);
 
-    _token.safeTransfer(_beneficiary, amount);
+    token.safeTransfer(beneficiary, amount);
   }
 }
